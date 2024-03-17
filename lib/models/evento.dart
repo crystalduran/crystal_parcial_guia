@@ -13,6 +13,7 @@ class Evento {
     this.image64bit
   });
 
+   // Este método se utiliza para construir un objeto Evento a partir de datos JSON.
   factory Evento.fromJson(Map<String, dynamic> json) => Evento(
     id: json['id'],
     createdAt: DateTime.fromMicrosecondsSinceEpoch(json['createdAt']),
@@ -21,6 +22,7 @@ class Evento {
     image64bit: json['image64bit']
   );
 
+  //Este método se utiliza para serializar un objeto Evento en JSON.
   Map<String, dynamic> toJson() => {
     'id': id,
     'createdAt': createdAt.microsecondsSinceEpoch,

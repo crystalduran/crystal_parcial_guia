@@ -1,40 +1,53 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:crystal_examen_2/models/evento.dart';
 import 'package:crystal_examen_2/services/database_helper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:crystal_examen_2/widgets/navbar.dart';
 
-class RegistroEventoScreen extends StatelessWidget {
+class RegistroEventoScreen extends StatefulWidget {
   final Evento? evento;
   RegistroEventoScreen({Key? key, this.evento}) : super(key: key);
+
+  @override
+  _RegistroEventoScreenState createState() => _RegistroEventoScreenState();
+}
+
+class _RegistroEventoScreenState extends State<RegistroEventoScreen> {
   final tituloController = TextEditingController();
   final descripcionController = TextEditingController();
+  String? byte64String;  // Variable para almacenar la imagen como una cadena Base64.
 
-  Future<String> pickImage() async {
-    var image = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 45);
-    var imageBytes = await image!.readAsBytes();
-    print("image picked: ${image.path}");
-
-    String base64image = base64Encode(imageBytes);
-    return base64image;
+  @override
+  void initState() {
+    super.initState();
+    // Si se proporciona un evento, inicializa los campos con sus valores.
+    if (widget.evento != null) {
+      tituloController.text = widget.evento!.titulo;
+      descripcionController.text = widget.evento!.descripcion;
+      byte64String = widget.evento!.image64bit;
+    }
   }
-
-  String? byte64String;
+  // Método para seleccionar una imagen desde la galería.
+  Future<void> pickImage() async {
+    var image = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 45,
+    );
+    if (image != null) {
+      var imageBytes = await image.readAsBytes();
+      setState(() {
+        byte64String = base64Encode(imageBytes);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    if(evento != null) {
-      tituloController.text = evento!.titulo;
-      descripcionController.text = evento!.descripcion;
-      byte64String = evento!.image64bit;
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          evento == null ? 'Agregar evento' : 'Editar evento',
+          widget.evento == null ? 'Agregar evento' : 'Editar evento',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -58,7 +71,7 @@ class RegistroEventoScreen extends StatelessWidget {
                   labelText: 'Titulo del evento',
                   border: OutlineInputBorder(
                     borderSide: BorderSide(
-                        color: Colors.white
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -71,20 +84,17 @@ class RegistroEventoScreen extends StatelessWidget {
                 labelText: 'Descripcion del evento',
                 border: OutlineInputBorder(
                   borderSide: BorderSide(
-                      color: Colors.white
+                    color: Colors.white,
                   ),
                 ),
               ),
             ),
             SizedBox(height: 30),
             ElevatedButton(
-              onPressed: () async {
-                byte64String = await pickImage();
-                print("byt6 64 string: $byte64String");
-              },
+              onPressed: pickImage,
               style: ElevatedButton.styleFrom(
-                primary: Colors.red, // Color rojo
-                onPrimary: Colors.white, // Texto en blanco
+                primary: Colors.red,
+                onPrimary: Colors.white,
               ),
               child: const Text("Elegir Imagen"),
             ),
@@ -103,21 +113,27 @@ class RegistroEventoScreen extends StatelessWidget {
                     final titulo = tituloController.value.text;
                     final descripcion = descripcionController.value.text;
 
-                    if(titulo.isEmpty || descripcion.isEmpty){
+                    if (titulo.isEmpty || descripcion.isEmpty) {
                       return;
                     }
-                    final createdAt = evento?.createdAt ?? DateTime.now(); // Si no hay evento, usa la fecha actual
-                    final Evento model = Evento(id: evento?.id, createdAt: createdAt, titulo: titulo, descripcion: descripcion, image64bit: byte64String);
-                    if(evento == null) {
+                    final createdAt = widget.evento?.createdAt ?? DateTime.now();
+                    final Evento model = Evento(
+                      id: widget.evento?.id,
+                      createdAt: createdAt,
+                      titulo: titulo,
+                      descripcion: descripcion,
+                      image64bit: byte64String,
+                    );
+                    if (widget.evento == null) {
                       await DatabaseHelper.insertEvento(model);
                     } else {
                       await DatabaseHelper.updateEvento(model);
                     }
-                    Navigator.pop(context);
+                    Navigator.pop(context, model);
                   },
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(Colors.red), // Color de fondo rojo
-                    foregroundColor: MaterialStateProperty.all<Color>(Colors.white), // Color de texto blanco
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
+                    foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
                     shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                       RoundedRectangleBorder(
                         side: BorderSide(color: Colors.white, width: 0.75),
@@ -126,7 +142,7 @@ class RegistroEventoScreen extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    evento == null ? 'Agregar' : 'Editar',
+                    widget.evento == null ? 'Agregar' : 'Editar',
                     style: const TextStyle(fontSize: 20),
                   ),
                 ),

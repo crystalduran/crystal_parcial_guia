@@ -11,6 +11,7 @@ class EventoWidget extends StatelessWidget {
     required this.onTap
   }) : super(key: key);
 
+  //El widget utiliza un InkWell como contenedor principal para permitir interacciones táctiles.
   @override
   Widget build(BuildContext context){
     return InkWell(

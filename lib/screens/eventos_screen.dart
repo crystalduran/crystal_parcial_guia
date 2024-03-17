@@ -13,6 +13,7 @@ class EventosScreen extends StatefulWidget {
   State<EventosScreen> createState() => _EventosScreenState();
 }
 
+// FutureBuilder: Se utiliza para manejar el estado futuro de la obtención de eventos desde la base de datos.
 class _EventosScreenState extends State<EventosScreen> {
   @override
   Widget build(BuildContext context) {
